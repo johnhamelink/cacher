@@ -54,7 +54,7 @@
                   # emitting any resultant files.
                   ${pkgs.typescript}/bin/tsc --noEmit
                   # Execute the typescript with tsx
-                  ${pkgs.nodejs}/bin/npx tsx -- "''${@}" 
+                  ${pkgs.nodejs}/bin/npx tsx "''${@}"
                 '';
               })
             ];
