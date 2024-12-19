@@ -1,0 +1,1704 @@
+openapi: 3.1.0
+info:
+  version: '1.0'
+  title: Core
+  summary: We will come to this later
+  description: ''
+servers:
+  - url: 'https://api.bondio.co'
+    description: prod
+paths:
+  '/v1/plans/{id}':
+    get:
+      tags:
+        - Plan
+      summary: Get a plan
+      operationId: get-a-plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Retrieves the details of an existing plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '404':
+          description: The requested resource doesn't exist.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+    patch:
+      tags:
+        - Plan
+      summary: Update plan
+      operationId: patch-v1-plans-id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                coverageId:
+                  type: string
+                dataMBs:
+                  type: string
+                periodDays:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  /v1/coverage-profiles:
+    get:
+      tags:
+        - Plan
+      summary: Get coverage profiles
+      description: Returns the complete list of all coverage profiles supported
+      operationId: get-v1-coverage-profiles
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoverageProfile'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  /v1/plans:
+    get:
+      tags:
+        - Plan
+      summary: List plans
+      description: Returns a lists of plans based on the search/filtering criteria
+      operationId: list-plans
+      parameters:
+        - name: searchQuery
+          in: query
+          description: Query to search the plans by name
+          schema:
+            type: string
+        - name: archived
+          in: query
+          description: 'When true, only archived plans are returned. When false, only non archived plans are returned. When absent all are returned.'
+          allowEmptyValue: false
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          description: A cursor for pagination across multiple pages of results. Don’t include this parameter on the first call.
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          description: Number of items to be returned in a single page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 25
+            default: 10
+        - name: countryIso2
+          in: query
+          description: 'Comma separated list of countryIso2 e.g. countryIso2=FR,IN'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of plans is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nextPage:
+                    type:
+                      - string
+                      - 'null'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Plan'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+    post:
+      tags:
+        - Plan
+      summary: Create a plan
+      description: Creates a plan with the given configuration.
+      operationId: post-v1-plans
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the plan which can be any thing you like.
+                coverageId:
+                  type: string
+                  description: coverage id of the region. For full list check out the Help section in the dashboard.
+                dataMBs:
+                  type: integer
+                  description: The amount of MBs you want in the plan
+                periodDays:
+                  type: integer
+                  description: plan validity in days
+                periodIterations:
+                  type: integer
+                  default: 1
+                throttledSpeedKbps:
+                  type: integer
+                  default: 0
+              required:
+                - name
+                - coverageId
+                - dataMBs
+                - periodDays
+      responses:
+        '200':
+          description: Returns the created plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v1/plans/{id}/archive':
+    post:
+      tags:
+        - Plan
+      summary: Archive a plan
+      description: Archives an existing plan which thereafter cannot be used to create a subscription in future. This is an irreversible operation. An archived plan has a non-null `archivedAt` field
+      operationId: archive-a-plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns the archived plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+              examples:
+                Example 1:
+                  value:
+                    id: plan.id1
+                    name: UK incredible
+                    coverage:
+                      id: cvpr_dfklsh12
+                      name: United Kingdom
+                      label: chi
+                    voiceMinutes: 60
+                    dataMegaBytes: 1024
+                    smsMessages: 100
+                    periodDays: 30
+                    archivedAt: null
+                    isAddon: false
+                    label: alpha
+        '404':
+          description: The requested resource doesn't exist.
+        '409':
+          description: The request could not be processed because the plan is already archived.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v1/esims/{xid}':
+    get:
+      tags:
+        - Esim
+      summary: Get an eSIM
+      description: Retrieve the information of the esim with the matching esim ID or ICCID.
+      operationId: get-an-esim
+      parameters:
+        - name: xid
+          in: path
+          description: id or iccid of esim
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns the esim information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Esim'
+              examples:
+                Example 2:
+                  value:
+                    id: esim.id1
+                    iccid: 891004234814455936F
+                    activationCode: 'LPA:1$smdp.bondio.com$23LKL-32340MX-20349LIH'
+                    msisdn: '449898978234'
+                    label: alpha
+        '404':
+          description: The requested resource doesn't exist.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v1/esims/{xid}/smdp-info':
+    get:
+      tags:
+        - Esim
+      summary: Get SMDP state info of eSIM
+      description: |
+        Returns the SMDP related information associated with the esim profile.
+        <!-- theme: warning -->
+        > #### Watch Out!
+        >
+        > This API will return 404 for the esim labels that don't have this information.
+      operationId: get-v1-esims-xid-profile-states
+      parameters:
+        - name: xid
+          in: path
+          description: id or iccid of esim
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsimSmdpInfo'
+        '404':
+          description: The requested resource doesn't exist or the current esim label isn't supported for smdp info
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v1/esims/{xid}/qrcode':
+    get:
+      tags:
+        - Esim
+      summary: Get QR code image
+      description: Returns the QR code image in the png format
+      operationId: get-v1-esims-xid-qrcode
+      parameters:
+        - name: xid
+          in: path
+          description: id or iccid of esim
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: object
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  /v1/esims:
+    get:
+      tags:
+        - Esim
+      summary: List eSIMs
+      description: Returns a list of eSIMs
+      operationId: list-esims
+      parameters:
+        - name: pageSize
+          in: query
+          description: Number of items to be returned in a single page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 25
+            default: 10
+        - name: page
+          in: query
+          description: A cursor for pagination across multiple pages of results. Don’t include this parameter on the first call.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Esim'
+                  nextPage:
+                    type:
+                      - string
+                      - 'null'
+              examples:
+                Example 1:
+                  value:
+                    items:
+                      - id: esim.id1
+                        iccid: 891004234814455936F
+                        activationCode: 'LPA:1$smdp.bondio.com$23LKL-32340MX-20349LIH'
+                        msisdn: '449898978234'
+                    nextPage: Aa3b34u3infqkj==
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v2/subscriptions/{xid}':
+    get:
+      tags:
+        - SubscriptionV2
+      summary: Get a subscription
+      operationId: get-v2-subscriptions-xid
+      parameters:
+        - name: expand
+          in: query
+          description: can be used to fetch full esim object with `expand=esim`
+          schema:
+            type: string
+        - name: xid
+          in: path
+          description: esim ICCID or subscription id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionV2'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  /v2/subscriptions:
+    get:
+      tags:
+        - SubscriptionV2
+      summary: List subscriptions
+      operationId: list-v2-subscriptions
+      parameters:
+        - name: pageSize
+          in: query
+          schema:
+            type: number
+        - name: page
+          in: query
+          schema:
+            type: string
+        - name: expand
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubscriptionV2'
+                  nextPage:
+                    type:
+                      - string
+                      - 'null'
+                required:
+                  - items
+                  - nextPage
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+    post:
+      tags:
+        - SubscriptionV2
+      summary: Create a new subscription
+      operationId: post-v2-subscriptions
+      parameters:
+        - name: expand
+          in: query
+          description: can be used to fetch full esim object with `expand=esim`
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planParams:
+                  type: object
+                  properties:
+                    planId:
+                      type: string
+                      description: Id of the plan to be attached to this subscription
+                    activationType:
+                      type: string
+                      enum:
+                        - NOW
+                        - FIRST_USAGE
+                        - SCHEDULED
+                    activationAt:
+                      type: number
+                      description: Unix timestamp at which the plan should be activated. Only required when activation type is SCHEDULED.
+                  required:
+                    - planId
+                    - activationType
+                esim:
+                  type: string
+                  description: |
+                    ICCID of the preferred esim which is unused
+                metadata:
+                  type: string
+                  description: |
+                    Any string metadata you want to provide
+              required:
+                - planParams
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionV2'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  '/v2/subscriptions/{xid}/suspend':
+    post:
+      tags:
+        - SubscriptionV2
+      summary: Suspend a subscription
+      operationId: post-v2-subscriptions-xid-suspend
+      parameters:
+        - name: xid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties:
+                  currentState:
+                    type: string
+                    enum:
+                      - PENDING
+                      - ACTIVE
+                      - SUSPENDED
+                      - TERMINATED
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v2/subscriptions/{xid}/state-info':
+    get:
+      tags:
+        - SubscriptionV2
+      summary: Get subscription state info
+      description: |-
+        This is used to fetch the subscription state which can be in any of the following states-
+
+        **PENDING** - The subscription is pending on the telco system to be setup and so its not ready to be used.
+
+        **ACTIVE** - The subscription is setup on the telco system and data serivce can be used if there is a valid plan attached to it.
+
+        **SUSPENDED** - The subscription is paused and NO data service can be used, even from a valid active plan attachment.
+
+        **TERMINATED** - The subscription is permanently terminated. No data service can be used and no plan can be attached further.
+      operationId: get-v2-subscriptions-xid-state-info
+      parameters:
+        - name: xid
+          in: path
+          description: iccid or id of the subscription
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentState:
+                    type: string
+                    enum:
+                      - PENDING
+                      - ACTIVE
+                      - SUSPENDED
+                      - TERMINATED
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  '/v2/subscriptions/{xid}/plan-attachments/{id}':
+    get:
+      tags:
+        - SubscriptionV2
+      summary: Get a plan attachment
+      operationId: get-v2-subscriptions-xid-plan-attachments-id
+      parameters:
+        - name: expand
+          in: query
+          description: can be used to fetch full plan object with `expand=plan`
+          schema:
+            type: string
+        - name: xid
+          in: path
+          description: esim ICCID or subscription id
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: id of the plan attachment
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanAttachment'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  '/v2/subscriptions/{xid}/plan-attachments':
+    get:
+      tags:
+        - SubscriptionV2
+      summary: List plan attachments
+      operationId: list-v2-subscriptions-xid-plan-attachments
+      parameters:
+        - name: expand
+          in: query
+          description: can be used to fetch full plan object with `expand=plan`
+          schema:
+            type: string
+        - name: xid
+          in: path
+          description: esim ICCID or subscription id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlanAttachment'
+                required:
+                  - items
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+    post:
+      tags:
+        - SubscriptionV2
+      summary: Create a plan attachment (topup)
+      operationId: post-v2-subscriptions-xid-plan-attachments
+      parameters:
+        - name: expand
+          in: query
+          description: can be used to fetch full plan object with `expand=plan`
+          schema:
+            type: string
+        - name: xid
+          in: path
+          description: esim ICCID or subscription id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planId:
+                  type: string
+                activationType:
+                  type: string
+                  enum:
+                    - FIRST_USAGE
+                    - NOW
+                    - SCHEDULED
+                activationAt:
+                  $ref: '#/components/schemas/activationAt'
+              required:
+                - planId
+                - activationType
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanAttachment'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  '/v2/subscriptions/{xid}/plan-attachments/{id}/suspend':
+    post:
+      tags:
+        - SubscriptionV2
+      summary: Suspend a plan attachment
+      description: |-
+        This operation stops all telco services on this attachment and puts it in a suspended state. This is a non-reversible operation. For some providers, this operation is only allowed if the attachment is not yet activated.
+
+        Please note that API is NOT supported for suspending **recurring** plans yet.
+      operationId: post-v2-subscriptions-xid-plan-attachments-id-suspend
+      parameters:
+        - name: xid
+          in: path
+          description: esim ICCID or subscription id
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: id of the plan attachment
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanAttachment'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  '/v1/subscriptions/{xid}':
+    get:
+      tags:
+        - Subscription
+      summary: Get a subscription
+      description: Retrieves the details of an existing subscription.
+      operationId: get-a-subscription
+      parameters:
+        - name: xid
+          in: path
+          description: iccid or id of the subscription
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns the subscription details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: The requested resource doesn't exist.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  /v1/subscriptions:
+    get:
+      tags:
+        - Subscription
+      summary: List all subscriptions
+      description: Return a list of subscriptions. The list is sorted by `createdAt` timestamp with the most recently created subscriptions appearing first.
+      operationId: list-subscriptions
+      parameters:
+        - name: state
+          in: query
+          description: The state of the subscription
+          schema:
+            type: string
+            enum:
+              - active
+              - expired
+              - ready
+        - name: page
+          in: query
+          description: A cursor for pagination across multiple pages of results. Don’t include this parameter on the first call.
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          description: Number of items to be returned in a single page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 25
+            default: 10
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+                  nextPage:
+                    type:
+                      - string
+                      - 'null'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+    post:
+      tags:
+        - Subscription
+      summary: Create a subscription
+      description: 'Creates a mobile plan subscription with the given plan '
+      operationId: create-a-asubscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planId:
+                  type: string
+                  description: The unique id of a plan. The plan must not be archived or an addon.
+              required:
+                - planId
+            examples:
+              Example 1:
+                value:
+                  planId: plan.id1
+      responses:
+        '200':
+          description: Returns the created subscription.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+              examples:
+                Example 1:
+                  value:
+                    id: sub.id1
+                    esimIccid: 891004234814455936F
+                    planId: plan.id1
+                    createdAt: 1707752560
+                    activatedAt: 1707778560
+                    expireAt: 1707799560
+                    purchasedAllowance:
+                      dataBytes: 102400001024
+                      voiceSeconds: 3660
+                      smsMessages: 100
+                    remainingAllownace:
+                      dataBytes: 1024
+                      voiceSeconds: 1800
+                      smsMessages: 50
+                    state: active
+                    metadata:
+                      paymentTransactionId: xyz
+        '412':
+          description: |
+            The request couldn't be processed. The possible reasons are -
+            1. The planId is invalid. Either it doesn't exist or is archived or is an addon plan.
+            2. There is no suitable eSIM left in your account to be assigned to this subscription.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v1/subscriptions/{id}/expire':
+    post:
+      tags:
+        - Subscription
+      summary: Expire a subscription
+      description: 'Expires a subscription thereby stopping all the services on the attached eSIM. An expired subscription has a non-null `expiredAt` field. This is an irreversible step meaning the same subscription cannot be activated again. Also, the corresponding eSIM cannot be used again.'
+      operationId: post-v1-subscriptions-id-expire
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns the up to date subscription that has the expireAt field set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: The resource not found.
+        '409':
+          description: The request could not be processed because the subscription is not in 'active' state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  '/v1/subscriptions/{id}/addons':
+    get:
+      tags:
+        - Subscription
+      summary: List addon attachments
+      description: Lists all the addon attachments of a subscription
+      operationId: get-subscription-addons
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddonAttachment'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+    post:
+      tags:
+        - Subscription
+      summary: Attach an addon to a subscription
+      description: 'Attaches an addon plan to an already existing subscription in order to increase its validity and/or data, voice or sms allowance. The subscription should not have expired for it to work.'
+      operationId: create-a-subscription-addon
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                addonPlanId:
+                  type: string
+                  description: The id of the addon plan to be attached. The addon plan should not be archived
+                validityStartBehavior:
+                  type: string
+                  description: |
+                    Defines the start time of the addon plan. There are two options:
+                    1. START_NOW: Start the validity of add on plan instantly
+                    2. END_OF_CUR_EXPIRY Start the validity add on plan on end of current plan expiry.
+                    In both the cases, the data allowance is available instantly.
+              required:
+                - addonPlanId
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddonAttachment'
+        '412':
+          description: The request couldn't be processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v2/subscriptions/{xid}/send-sms':
+    post:
+      tags:
+        - SubscriptionV2
+      summary: Send sms
+      operationId: post-v2-subscriptions-xid-send-sms
+      parameters:
+        - name: xid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                senderText:
+                  type: string
+                messageText:
+                  type: string
+              required:
+                - senderText
+                - messageText
+      responses:
+        '200':
+          description: OK
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  /v1/data-prices:
+    get:
+      tags:
+        - Pricing
+      summary: List data prices
+      description: Returns the list of the data price applicable to a country in the coverage profile.
+      operationId: get-v1-data-prices
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DataPrice'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+      x-internal: false
+  '/v1/coverage-profiles/{coverageId}/data-prices':
+    get:
+      tags:
+        - Pricing
+      summary: Get data prices for a coverage profile
+      description: Returns the price list of all the countries in a coverage profile
+      operationId: get-v1-coverage-profiles-coverageId-data-prices
+      parameters:
+        - name: coverageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPrice'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  /v1/prepaid-balance/transactions:
+    get:
+      tags:
+        - Account Balance
+      summary: List prepaid balance transactions for your account
+      description: 'Returns a chronologically sorted list of transactions on the prepaid balance of your account. '
+      operationId: get-v1-prepaid-balance-transactions
+      parameters:
+        - name: category
+          in: query
+          description: 'category of the transaction - purchase, consumption, topup, etc.'
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: transaction type - credit or debit
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BalanceTransaction'
+                  nextPage:
+                    type:
+                      - string
+                      - 'null'
+                required:
+                  - items
+                  - nextPage
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  /v1/prepaid-balance:
+    get:
+      tags:
+        - Account Balance
+      summary: Get prepaid balance of your account
+      description: Returns the amount of pre-paid balance in your account
+      operationId: get-v1-prepaid-balance
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrepaidBalance'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+  '/v1/plans/{id}/un-archive':
+    post:
+      tags:
+        - Plan
+      summary: Un-archive a plan
+      description: 'Un-archives a plan so that it can be re-used to create subscriptions. On success, the `archivedAt` field of the plan will be set to null. Calling this operation on an already un-archived plan will return the plan with `archivedAt` set to now.'
+      operationId: post-v1-plans-id-un-archive
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        2XX:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+      security:
+        - BearerAuth: []
+      servers:
+        - url: 'https://api.bondio.co'
+          description: prod
+tags:
+  - name: Plan
+  - name: Esim
+  - name: Subscription
+  - name: Addon Attachment
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Plan:
+      type: object
+      title: Plan
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        dataMegaBytes:
+          type: integer
+        voiceMinutes:
+          type:
+            - integer
+            - 'null'
+        smsMessages:
+          type:
+            - integer
+            - 'null'
+        periodDays:
+          type: integer
+          description: Plan validity in days
+        periodIterations:
+          type: integer
+          description: |
+            Number of times the periodDays should be repeated.
+          default: 1
+        throttledSpeedKbps:
+          type: integer
+          description: Speed after allocated data is used up. The default zero means no usage allowed afterwards.
+          default: 0
+        archivedAt:
+          type:
+            - integer
+            - 'null'
+        label:
+          type: string
+          description: The plan-esim compatibility label
+        coverage:
+          $ref: '#/components/schemas/CoverageProfile'
+        createdAt:
+          type: integer
+      examples:
+        - id: plan_gulabo12
+          name: Australia 1GB 7d recurring throttled
+          voiceMinutes: 60
+          dataMegaBytes: 1024
+          smsMessages: 100
+          periodDays: 1
+          periodIterations: 7
+          throttledSpeedKbps: 128
+          archivedAt: null
+          label: alpha
+          coverage:
+            id: cvpr_jaaneha1
+            name: Australia (Single Network)
+            label: alpha
+            networks:
+              - id: mnt_ahekjfa2
+                name: Telstra
+                plmn: '50501'
+                supportedRats:
+                  - 4g
+                  - 5g
+                country:
+                  name: Australia
+                  iso2: AU
+                  iso3: AUS
+    CoverageProfile:
+      type: object
+      title: Coverage
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountryWithOperator'
+      required:
+        - id
+        - name
+        - label
+        - countries
+      examples:
+        - id: cvpr_hdy2da3n
+          name: Australia region
+          label: lambda
+          countries:
+            - name: Australia
+              iso2: AU
+              iso3: AUS
+              operators:
+                - name: Telstra
+                  supportedRats:
+                    - 4g
+                    - 5g
+    CountryWithOperator:
+      type: object
+      title: CountryWithOperator
+      properties:
+        name:
+          type: string
+        iso2:
+          type: string
+        iso3:
+          type: string
+        operators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Operator'
+      required:
+        - name
+        - iso2
+        - iso3
+        - operators
+      examples:
+        - name: Australia
+          iso2: AU
+          iso3: AUS
+          operators:
+            - name: Telstra
+              supportedRats:
+                - 4g
+                - 5g
+    Operator:
+      type: object
+      title: Operator
+      properties:
+        name:
+          type: string
+        supportedRats:
+          type: array
+          description: |
+            List of supported radio access technologies
+          items:
+            type: string
+      required:
+        - name
+        - supportedRats
+      examples:
+        - name: Vodafone
+          supportedRats:
+            - 3G
+            - 4G
+    Esim:
+      type: object
+      title: Esim
+      properties:
+        id:
+          type: string
+        iccid:
+          type: string
+        msisdn:
+          type: string
+        activationCode:
+          type: string
+        label:
+          type: string
+          description: The plan-esim compatibility label
+        deliveredAt:
+          type: string
+        state:
+          type: string
+          enum:
+            - USED
+            - CONFIGURING
+            - UNUSED
+          description: |-
+            USED - esim has been used in a subscription
+
+            CONFIGURING - esim is being setup with a subscription
+
+            UNUSED - esim has never been used in any subscription
+      required:
+        - id
+        - iccid
+        - msisdn
+        - activationCode
+        - label
+        - deliveredAt
+        - state
+      examples:
+        - id: esim.id1
+          iccid: 891004234814455936F
+          activationCode: 'LPA:1$smdp.bondio.com$23LKL-32340MX-20349LIH'
+          msisdn: '449898978234'
+          label: alpha
+          deliveredAt: '123124144'
+          state: USED
+    EsimSmdpInfo:
+      type: object
+      title: EsimSmdpInfo
+      description: 'Kindly note that the eid & currentState are not required fields. In the cases, where this feature is supported but Bondio doesn''t have the data then these fields won''t be present.'
+      properties:
+        eid:
+          type:
+            - string
+            - 'null'
+        currentState:
+          type: string
+          enum:
+            - allocated
+            - released
+            - downloaded
+            - installed
+            - enabled
+            - disabled
+            - deleted
+        stateHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileState'
+      required:
+        - stateHistory
+    ProfileState:
+      type: object
+      title: ProfileState
+      properties:
+        state:
+          type: string
+          enum:
+            - ALLOCATED
+            - RELEASED
+            - DOWNLOADED
+            - INSTALLED
+            - ENABLED
+            - DISABLED
+            - DELETED
+        modifiedAt:
+          type: integer
+        modificationResult:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILURE
+    SubscriptionV2:
+      type: object
+      title: SubscriptionV2
+      properties:
+        id:
+          type: string
+        esim:
+          anyOf:
+            - $ref: '#/components/schemas/Esim'
+            - type: string
+              description: ICCID of the esim
+        createdAt:
+          type: integer
+        metadata:
+          type:
+            - string
+            - 'null'
+      required:
+        - id
+        - esim
+        - createdAt
+        - metadata
+      examples:
+        - id: sub2_wyr3ios2
+          esim:
+            id: esim_iddfsdf1
+            iccid: 891004234814455936F
+            activationCode: 'LPA:1$smdp.bondio.com$23LKL-32340MX-20349LIH'
+            msisdn: '449898978234'
+            label: alpha
+          createdAt: 123143243
+          metadata: tag1
+    PlanAttachment:
+      type: object
+      title: PlanAttachment
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: number
+        activationAt:
+          type: number
+        expirationAt:
+          type: number
+        state:
+          type: string
+          enum:
+            - CREATED
+            - PENDING_FOR_FIRST_USE
+            - SCHEDULED
+            - ACTIVE
+            - EXPIRED
+            - SUSPENDED
+        usedAllowance:
+          $ref: '#/components/schemas/Allowance'
+        plan:
+          anyOf:
+            - $ref: '#/components/schemas/Plan'
+            - type: string
+              description: |
+                id of the plan
+      required:
+        - id
+        - createdAt
+        - activationAt
+        - expirationAt
+        - state
+        - usedAllowance
+        - plan
+    Allowance:
+      type: object
+      title: Allowance
+      properties:
+        dataBytes:
+          type:
+            - integer
+            - 'null'
+          format: int64
+          minimum: 0
+        voiceSeconds:
+          type:
+            - integer
+            - 'null'
+        smsMessages:
+          type:
+            - integer
+            - 'null'
+      examples:
+        - dataBytes: 1024
+          voiceSeconds: 60
+          smsMessages: 100
+    activationAt:
+      type: number
+      description: Unix timestamp at which the plan should be activated. Only required when activation type is SCHEDULED.
+    Subscription:
+      type: object
+      title: Subscription
+      properties:
+        id:
+          type: string
+        esimIccid:
+          type: string
+        planId:
+          type: string
+        createdAt:
+          type: integer
+        activatedAt:
+          type:
+            - integer
+            - 'null'
+        expireAt:
+          type:
+            - integer
+            - 'null'
+        purchasedAllowance:
+          $ref: '#/components/schemas/Allowance'
+        remainingAllownace:
+          $ref: '#/components/schemas/Allowance'
+        state:
+          type: string
+          enum:
+            - active
+            - expired
+            - ready
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - id
+        - esimIccid
+        - planId
+        - createdAt
+        - activatedAt
+        - expireAt
+        - purchasedAllowance
+        - remainingAllownace
+        - state
+        - metadata
+      examples:
+        - id: sub.id1
+          esimIccid: 891004234814455936F
+          planId: plan.id1
+          createdAt: 1707752560
+          activatedAt: 1707778560
+          expireAt: 1707799560
+          purchasedAllowance:
+            dataBytes: 102400001024
+            voiceSeconds: 3660
+            smsMessages: 100
+          remainingAllownace:
+            dataBytes: 1024
+            voiceSeconds: 1800
+            smsMessages: 50
+          state: active
+          metadata:
+            devDefinedKey: someValue
+      x-extension-1: null
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: |-
+            A machine-readable description of the error.
+
+            Example: `outOfInventory`
+        message:
+          type: string
+          description: A human readable description of the error
+        docsUrl:
+          type:
+            - string
+            - 'null'
+          description: A URL to the docs page providing further information to resolve the error.
+      required:
+        - code
+        - message
+        - docsUrl
+      examples:
+        - code: outOfInventory
+          message: New subscription could not be created because the account is out of inventory
+          docsUrl: 'https://bondio.stoplight.io/docs/bondio-api'
+      x-examples:
+        Example 1:
+          object: error
+          code: invalidICCID
+          details:
+            - object: propertyErrorDetail
+              code: propertyRequired
+              message: Invalid value for property.
+              property: property1
+              suggestion: alternative_value
+          documentation:
+            - 'https://developers.gigs.com/docs/api/ZG9jOjExMTYzMDU0-error-handling'
+          hint: 'Parameter iccid must match /^([0-9]{19}F?|[0-9]{20})$/i'
+          message: Invalid ICCID format.
+          type: invalid
+    AddonAttachment:
+      type: object
+      title: AddonAttachment
+      properties:
+        id:
+          type: string
+        addonPlanId:
+          type: string
+        attachedAt:
+          type: integer
+      examples:
+        - id: adda.aid1
+          addonPlanId: plan.id2
+          attachedAt: 1707752352
+    DataPrice:
+      type: object
+      title: DataPrice
+      properties:
+        coverageProfile:
+          type: string
+        country:
+          type: string
+        pricePerGB:
+          type: number
+      required:
+        - coverageProfile
+        - country
+        - pricePerGB
+      examples:
+        - coverageProfile: cvpr_zindagi1
+          country: IN
+          pricePerGB: 2.1
+    BalanceTransaction:
+      type: object
+      title: BalanceTransaction
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        currency:
+          type: string
+        changeType:
+          type: string
+          enum:
+            - credit
+            - debit
+        createdAt:
+          type: integer
+        description:
+          type: string
+    PrepaidBalance:
+      type: object
+      title: PrepaidBalance
+      properties:
+        balance:
+          type: number
+        currency:
+          type: string
+      required:
+        - balance
+        - currency
+      examples:
+        - balance: 10.78
+          currency: usd
+security:
+  - BearerAuth: []

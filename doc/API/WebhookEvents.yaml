@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  version: '1.0'
+  title: Webhook Events
+  summary: ''
+  description: |-
+    A webhook allows you to receive certain events at a specified endpoint in our server upon which you can take certain actions.
+
+    ### Configuring a webhook
+
+    A webhook can be generated from the Bondio's portal by following these step:
+    1. Go to the `webhooks` section on the side bar.
+    2. Click on `New webhook` at the top right.
+    3. Enter your server endpoint, where you want to receive the webhook events.
+    4. Click `Create`
+
+
+    ### All events
+    The table below shows all the events that are sent from Bondio's platform to your server and their respective triggers. Click on the event type to find more about it. 
+    event type | trigger
+    ---------|------
+     [subscription.activated](/docs/bondio-api/t5xav2o6vaghg-subscription-activated) | When the device successfully connects to a network in the coverage area of the plan for the first time. 
+     [subscription.expired](/docs/bondio-api/0oxql620vkg89-subscription-expired) | When the validity of the subscription is expired and the mobile service no longer works.
+     [subscription.allowance.thresholdBreached](/docs/bondio-api/80lmg6fcw25zt-subscription-allowance-threshold-breached) | When the subscription usage(data/voice/sms) breaches the 80%, 90% or 100% thresholds.
+     [subscription.allowance.remaining](/docs/bondio-api/dyv77q84mtc8p-subscription-allowance-remaining) | When the remaining balance(data/voice/sms) reaches a specific value.
+
+    ### Sample event
+    ```json
+    {
+      "type": "subscription.allowance.thresholdBreached",
+      "subscriptionId": "subs.xb1rt3j0",
+      "breachedService": "data",
+      "esimIccid": "XXXXXXXXXXXXXX1234",
+      "threshold": 80
+    }
+    ```
+
+    ### Validate webhook signature
+
+    Each webhook call generated from bondio will consist of a unique signature header to validate call authentication.
+    The webhook will contain a header 'bondio-signature' which identifies call signature for each user uniquely.
+    To validate the signature we have created a npm library https://www.npmjs.com/package/@bondio/webhook-signature-validator
+
+    ```
+    import * as bondioSignatureValidator from '@bondio/webhook-signature-validator';
+
+    bondioSignatureValidator.validate(signature, signingKey, webhookDataObject);
+    ```
+    Field type | Description
+    ---------|------
+    signature | The header received in bondio-signature field.
+    signingKey | The key defined while registering webhook url on https://dashboard.bondio.co/home/webhooks
+    webhookDataObject | The json data received in webhook call.
+paths: {}
