@@ -46,6 +46,7 @@
                 name = "ts-node";
                 runtimeInputs = [
                   nodejs
+                  typescript
                 ];
 
                 text = ''
