@@ -19,7 +19,7 @@
       swagg-display-headers t)
 (setq swagg-definitions
       `((:name "Core"
-               :yaml ,(jjh/build-swagg-local-url "API/Core.yaml")
+               :yaml ,(jjh/build-swagg-local-url "doc/API/Core.yaml")
                :base "https://api.bondio.co"
                :header (("Accept" . "application/json")
                         ,(jjh/bondio/build-auth-header))
