@@ -35,6 +35,7 @@
               nixd
               nixfmt-rfc-style
               fswatch # Used to re-run tests
+
               # For JS
               nodejs
               typescript-language-server # LSP Server
@@ -52,9 +53,9 @@
                 text = ''
                   # Use tsc to compile the typescript, but without
                   # emitting any resultant files.
-                  ${pkgs.typescript}/bin/tsc --noEmit
-                  # Execute the typescript with tsx
-                  ${pkgs.nodejs}/bin/npx tsx "''${@}"
+                  ${pkgs.typescript}/bin/tsc --noEmit && \
+                    # Execute the typescript with tsx
+                    ${pkgs.nodejs}/bin/npx tsx "''${@}"
                 '';
               })
             ];
