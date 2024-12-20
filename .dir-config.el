@@ -16,8 +16,8 @@
   `("Authorization" . ,(format "Bearer %s" jjh/bondio/api-key)))
 
 (setq swagg-auto-accept-bound-values t
-      swagg-display-headers t)
-(setq swagg-definitions
+      swagg-display-headers t
+      swagg-definitions
       `((:name "Core"
                :yaml ,(jjh/build-swagg-local-url "doc/API/Core.yaml")
                :base "https://api.bondio.co"
@@ -26,4 +26,6 @@
                )))
 
 ;; Use our ts-node wrapper script to build a REPL
-(setq js-comint-program-command "ts-node")
+(setq js-comint-program-command "ts-node"
+      js-comint-program-arguments '()
+      jest-arguments '("--bail" "--colors" "--coverage" "--verbose"))
