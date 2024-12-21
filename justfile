@@ -27,23 +27,35 @@ bench:
 bench-debug:
     just debug node {{jestFile}} --runInBand --config {{benchConfig}}
 
+# Run benchmarks with V8 CPU profiling enabled
 bench-prof:
     just prof {{jestFile}} --config {{benchConfig}}
 
 debug executable *args:
     {{executable}} --inspect-brk {{args}}
 
-# Run benchmarks
+# Run profiler & turn output into preprocessed JSON.
 prof *args:
     #! /usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#nodejs --command bash
     mkdir -p prof
+    rm -rf ./prof/*.json
     echo -e "\n\tProfiling...\n"
     node --prof --logfile=prof/prof.log {{args}}
-    rm -rf ./prof/*.json
     for i in ./prof/*.log; do
-        echo -e "\n\tConverting from V8 log -> V8 JSON...\n"
+        echo -e "\n\tConverting ${i} from V8 log -> V8 JSON...\n"
         node --prof-process --preprocess -j ${i} > ${i}.json
-        echo -e "\n\tCompiling a CPUPro Report...\n"
-        cpupro -o prof ${i}.json
     done
-    # TODO: Generate an index.html
+
+# Build HTML reports from Preprocessed JSON and serve the from a
+# web-server.
+prof-reports:
+    #! /usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#nodejs --command bash
+    pushd prof
+    rm -rf reports
+    mkdir -p reports
+    for i in *.json; do
+        echo -e "\n\tCompiling a CPUPro Report...\n"
+        cpupro --no-open --output-dir reports ${i}
+    done
+
+    npx http-server -o --port 0 ./reports
