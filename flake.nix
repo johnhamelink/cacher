@@ -13,7 +13,8 @@
 
   outputs =
     inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+    inputs.flake-parts.lib.mkFlake { inherit inputs; }
+      {
 
       # See: https://flake.parts/debug
       debug = false;
@@ -38,6 +39,7 @@
 
               # For JS
               nodejs
+              python3
               typescript-language-server # LSP Server
               vscode-js-debug # DAP debugger
 

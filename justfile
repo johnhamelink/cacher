@@ -6,7 +6,7 @@ default:
 
 # Use tsc to compile the project
 build:
-    npx tsc -w
+    tsc -w
 
 # Run jest
 test:
@@ -22,15 +22,14 @@ bench:
 
 # Run benchmarks
 bench-prof:
-    #! /usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils --command bash
-    node --prof {{jestFile}} --config {{benchConfig}}
-    rm -rf prof && mkdir prof
-    for f in isolate*.log; do
-      mv $f prof/
-      pushd prof
-        node --prof-process -j $f | tee processed_$f
-      popd
-    done
+    #! /usr/bin/env -S nix shell nixpkgs#bash nixpkgs#coreutils nixpkgs#nodejs --command bash
+    mkdir -p prof
+    echo -e "\n\tProfiling...\n"
+    node --prof --no-logfile-per-isolate --logfile=prof/prof.log {{jestFile}} --config {{benchConfig}}
+    echo -e "\n\tConverting from V8 log -> V8 JSON...\n"
+    node --prof-process --preprocess -j prof/prof.log > prof/prof.json
+    echo -e "\n\tCompiling a CPUPro Report...\n"
+    cpupro -o prof prof/prof.json
 
 # Run benchmarks with remote debugging enabled
 bench-debug:
