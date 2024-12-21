@@ -43,8 +43,11 @@
               typescript-language-server # LSP Server
               vscode-js-debug # DAP debugger
 
+              # For running little scripts
+              just
+
               # This is used by Dape.el and js-comint.el as a less
-              # buggy replacement for ts-node.
+              # buggy replacement for ts-node. This is an override.
               (writeShellApplication {
                 name = "ts-node";
                 runtimeInputs = [
@@ -53,8 +56,9 @@
                 ];
 
                 text = ''
-                  # Use tsc to compile the typescript, but without
-                  # emitting any resultant files.
+                  # Use tsc to compile the typescript - but without
+                  # emitting any resultant files - for type checking
+                  # purposes.
                   ${pkgs.typescript}/bin/tsc --noEmit && \
                     # Execute the typescript with tsx
                     ${pkgs.nodejs}/bin/npx tsx "''${@}"
